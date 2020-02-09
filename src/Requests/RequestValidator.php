@@ -46,6 +46,14 @@ class RequestValidator extends FormRequest
                 'string',
                 'nullable',
                 function ($attribute, $value, $fail) {
+                    // If you're hidden directory file, ignoring the file.
+                    if ($this->input('disk') == config('file-manager.gcs.driver')) {
+                        $needle = $value . '/' . config('file-manager.gcs.hiddenDirectoryFile');
+                        if ($value && in_array($needle, Storage::disk($this->input('disk'))->files($value))) {
+                            return;
+                        }
+                    }
+
                     if ($value && !Storage::disk($this->input('disk'))->exists($value)
                     ) {
                         return $fail('pathNotFound');

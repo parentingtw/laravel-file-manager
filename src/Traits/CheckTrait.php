@@ -57,4 +57,14 @@ trait CheckTrait
             ],
         ];
     }
+
+    /**
+     * it's google cloud storage.
+     * @param $disk
+     * @return bool
+     */
+    public function isGcs($disk)
+    {
+        return $disk == config('file-manager.gcs.driver');
+    }
 }

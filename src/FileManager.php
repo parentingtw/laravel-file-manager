@@ -203,14 +203,18 @@ class FileManager
     public function delete($disk, $items)
     {
         $deletedItems = [];
-
         foreach ($items as $item) {
             // check all files and folders - exists or no
-            if (!Storage::disk($disk)->exists($item['path'])) {
+            if (!Storage::disk($disk)->exists($item['path']) && !$this->isGcs($disk)) {
                 continue;
             } else {
+                //delete directory on gcs
                 if ($item['type'] === 'dir') {
                     // delete directory
+                    if ($this->isGcs($disk)) {
+                        Storage::disk($disk)->delete($item['path'] . config('file-manager.gcs.hiddenDirectoryFile'));
+                    }
+
                     Storage::disk($disk)->deleteDirectory($item['path']);
                 } else {
                     // delete file
@@ -378,7 +382,10 @@ class FileManager
         $directoryName = $this->newPath($path, $name);
 
         // check - exist directory or no
-        if (Storage::disk($disk)->exists($directoryName)) {
+        $hiddenDirectoryFile = $directoryName . '/' . config('file-manager.gcs.hiddenDirectoryFile');
+
+        $exists = !$this->isGcs($disk) ? $directoryName : $hiddenDirectoryFile;
+        if (Storage::disk($disk)->exists($exists)) {
             return [
                 'result' => [
                     'status'  => 'warning',
@@ -388,6 +395,11 @@ class FileManager
         }
 
         // create new directory
+        if ($this->isGcs($disk)) {
+            // ref docs: https://cloud.google.com/storage/docs/gsutil/addlhelp/HowSubdirectoriesWork
+            Storage::disk($disk)->put($hiddenDirectoryFile, null);
+        }
+
         Storage::disk($disk)->makeDirectory($directoryName);
 
         // get directory properties

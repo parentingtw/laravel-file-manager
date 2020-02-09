@@ -28,6 +28,16 @@ return [
     'diskList' => ['public'],
 
     /**
+     * @ref: https://cloud.google.com/storage/docs/gsutil/addlhelp/HowSubdirectoriesWork
+     * If you use gcs, creating a directory needs a file.
+     * You can customize your hidden or shown the file name.
+     */
+    'gcs' => [
+        'driver' => 'gcs',
+        'hiddenDirectoryFile' => '.google'
+    ],
+
+    /**
      * Default disk for left manager
      *
      * null - auto select the first disk in the disk list

@@ -4,6 +4,7 @@ namespace Alexusmai\LaravelFileManager\Traits;
 
 use Alexusmai\LaravelFileManager\Services\ACLService\ACL;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 use Storage;
 
 trait ContentTrait
@@ -121,14 +122,16 @@ trait ContentTrait
      */
     public function directoryProperties($disk, $path = null)
     {
-        $directory = Storage::disk($disk)->getMetadata($path);
+        $meta = $path . '/' . config('file-manager.gcs.hiddenDirectoryFile');
+
+        $directory = Storage::disk($disk)->getMetadata(!$this->isGcs($disk) ? $path : $meta);
 
         $pathInfo = pathinfo($path);
 
         /**
          * S3 didn't return metadata for directories
          */
-        if (!$directory) {
+        if (!$directory OR $this->isGcs($disk)) {
             $directory['path'] = $path;
             $directory['type'] = 'dir';
         }
@@ -186,6 +189,13 @@ trait ContentTrait
         $files = Arr::where($content, function ($item) {
             return $item['type'] === 'file';
         });
+
+        // do not display hidden file.
+        if ($this->isGcs($disk)) {
+            $files = Arr::where($files, function ($item) {
+                return !Str::contains($item['path'], '/' . config('file-manager.gcs.hiddenDirectoryFile'));
+            });
+        }
 
         // if ACL ON
         if ($this->configRepository->getAcl()) {
