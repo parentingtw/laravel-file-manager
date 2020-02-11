@@ -28,6 +28,11 @@ return [
     'diskList' => ['public'],
 
     /**
+     * The class of AWS cloudfront Action
+     */
+    'cdnAction' => null,
+
+    /**
      * Default disk for left manager
      *
      * null - auto select the first disk in the disk list
