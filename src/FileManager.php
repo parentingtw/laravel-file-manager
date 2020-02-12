@@ -473,11 +473,11 @@ class FileManager
         // get file properties
         $fileProperties = $this->fileProperties($disk, $filePath);
 
+        // cdn action.
         $class = config('file-manager.cdnAction');
         if (class_exists($class)) {
             $instance = app($class);
-            if (method_exists($instance, 'client') &&
-                method_exists($instance, 'clearCache')) {
+            if (method_exists($instance, 'clearCache')) {
                 $instance->clearCache($filePath);
             }
         }
